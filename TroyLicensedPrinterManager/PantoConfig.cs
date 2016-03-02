@@ -8,13 +8,17 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Xml.Serialization;
+using PantographPclBuilder;
 
 namespace TroyLicensedPrinterManager
 {
     public partial class PantoConfig : Form
     {
         public string BasePath = "";
+        public string pantoFolder = "";
         private PantographConfiguration swPantograph = null;
+        private static bool fullPagePantographUsed;
+
 
         public PantoConfig()
         {
@@ -33,6 +37,7 @@ namespace TroyLicensedPrinterManager
                 {
                     cboModels.Items.Add(dir.Name);
                 }
+                cboModels.SelectedIndex = cboModels.Items.IndexOf(pantoFolder);
             }
             catch (Exception ex)
             {
@@ -58,26 +63,39 @@ namespace TroyLicensedPrinterManager
                 XmlSerializer dser = new XmlSerializer(typeof(PantographConfiguration));
                 FileStream fs = new FileStream(pgFileName, FileMode.Open);
                 swPantograph = (PantographConfiguration)dser.Deserialize(fs);
+                fs.Close();
 
                 numDarknessFactor.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].BgDarknessFactor);
                 numDensityPtn1.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].DensityPattern1);
                 numDensityPtn2.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].DensityPattern2);
-                numXAnchor.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].InclusionRegion.XAnchor);
-                numYAnchor.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].InclusionRegion.YAnchor);
-                numHeight.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].InclusionRegion.Height);
-                numWidth.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].InclusionRegion.Width);
+
                 numIntfPtn.Value = Convert.ToDecimal(swPantograph.PantographConfigurations[0].InterferencePatternId);
                 txtMicroPrint.Text = swPantograph.PantographConfigurations[0].BorderString;
                 chkUseFullPage.Checked = swPantograph.PantographConfigurations[0].UseDefaultInclusionForPaperSize;
+                chkTM.Checked = swPantograph.PantographConfigurations[0].TROYmarkOn;
 
-                fs.Close();
-
-                gbPantoConfig.Enabled = true;
+                GetInclusionRegion(pantoControl1, swPantograph.PantographConfigurations[0]);
+                GetInclusionRegion(pantoControl2, swPantograph.PantographConfigurations[1]);
+                GetInclusionRegion(pantoControl3, swPantograph.PantographConfigurations[2]);
+                GetInclusionRegion(pantoControl4, swPantograph.PantographConfigurations[3]);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error opening pantograph configuration.  Error: " + ex.Message);
+                swPantograph =  new PantographConfiguration();
+                var cc = new CustomConfiguration() {TROYmarkOn = true};
+                swPantograph.PantographConfigurations.Add(cc);
+                chkTM.Checked = swPantograph.PantographConfigurations[0].TROYmarkOn;
             }
+        }
+
+        private bool GetInclusionRegion(PantoControl pantoControl, CustomConfiguration item)
+        {
+
+            pantoControl.numXAnchor.Value = Convert.ToDecimal(item.InclusionRegion.XAnchor);
+            pantoControl.numYAnchor.Value = Convert.ToDecimal(item.InclusionRegion.YAnchor);
+            pantoControl.numHeight.Value = Convert.ToDecimal(item.InclusionRegion.Height);
+            pantoControl.numWidth.Value = Convert.ToDecimal(item.InclusionRegion.Width);
+            return true;
         }
 
         private void chkUseFullPage_CheckedChanged(object sender, EventArgs e)
@@ -85,25 +103,17 @@ namespace TroyLicensedPrinterManager
             if (chkUseFullPage.Checked)
             {
                 groupBox1.Enabled = false;
-                groupBox2.Enabled = false;
             }
             else
             {
                 groupBox1.Enabled = true;
-                groupBox2.Enabled = true;
             }
         }
 
         private void btnOk_Click(object sender, EventArgs e)
         {
-            if (!gbPantoConfig.Enabled)
-            {
-                return;
-            }
             if (ValidateSettings())
             {
-                
-
                 SaveConfig sc = new SaveConfig();
                 sc.BasePath = BasePath;
                 sc.CurrentConfig = cboModels.Text;
@@ -112,48 +122,85 @@ namespace TroyLicensedPrinterManager
 
                 if (sc.SaveLocation != "")
                 {
-                    swPantograph.PantographConfigurations[0].BgDarknessFactor = Convert.ToInt32(numDarknessFactor.Value);
-                    swPantograph.PantographConfigurations[0].DensityPattern1 = Convert.ToInt32(numDensityPtn1.Value);
-                    swPantograph.PantographConfigurations[0].DensityPattern2 = Convert.ToInt32(numDensityPtn2.Value);
-                    if (swPantograph.PantographConfigurations[0].InclusionRegion == null)
-                    {
-                        swPantograph.PantographConfigurations[0].InclusionRegion = new PantographPclBuilder.PantographRegionObjectType();
-                    }
-                    swPantograph.PantographConfigurations[0].InclusionRegion.XAnchor = Convert.ToInt32(numXAnchor.Value);
-                    swPantograph.PantographConfigurations[0].InclusionRegion.YAnchor = Convert.ToInt32(numYAnchor.Value);
-                    swPantograph.PantographConfigurations[0].InclusionRegion.Height = Convert.ToInt32(numHeight.Value);
-                    swPantograph.PantographConfigurations[0].InclusionRegion.Width = Convert.ToInt32(numWidth.Value);
-                    swPantograph.PantographConfigurations[0].InterferencePatternId = Convert.ToInt32(numIntfPtn.Value);
-                    swPantograph.PantographConfigurations[0].BorderString = txtMicroPrint.Text;
-                    swPantograph.PantographConfigurations[0].UseDefaultInclusionForPaperSize = chkUseFullPage.Checked;
+                    swPantograph.PantographConfigurations.Clear();
+                    fullPagePantographUsed = false;
+
+                    AddPantoConfig(pantoControl1, ref swPantograph.PantographConfigurations);
+                    AddPantoConfig(pantoControl2, ref swPantograph.PantographConfigurations);
+                    AddPantoConfig(pantoControl3, ref swPantograph.PantographConfigurations);
+                    AddPantoConfig(pantoControl4, ref swPantograph.PantographConfigurations);
 
                     string configloc = BasePath + "\\Configuration\\" + sc.SaveLocation;
                     if (!Directory.Exists(configloc))
                     {
                         Directory.CreateDirectory(configloc);
                     }
-                    XmlSerializer xser = new XmlSerializer(typeof(PantographConfiguration));
+                    XmlSerializer xser = new XmlSerializer(typeof (PantographConfiguration));
                     string filename = configloc + "\\TroyPantographConfiguration.xml";
                     TextWriter writer = new StreamWriter(filename);
                     xser.Serialize(writer, swPantograph);
                     writer.Close();
 
-                    string pfilename = configloc + "\\PantographProfile1Page1.pcl";
-                    PantographPclBuilder.BuildPantograph pBuilder = new PantographPclBuilder.BuildPantograph();
-                    pBuilder.CreatePantographPcl(pfilename, swPantograph.PantographConfigurations[0], BasePath + "\\Configuration\\", true);
+                    var dir = new DirectoryInfo(configloc);
+                    foreach (var file in dir.EnumerateFiles("PantographProfile*.pcl"))
+                    {
+                        file.Delete();
+                    }
 
+                    var end = swPantograph.PantographConfigurations.Count()-1;
+                    for (int cntr = 0; cntr <= end; cntr++)
+                    {
+                        string pfilename = String.Format(@"{0}\PantographProfile{1}Page1.pcl", configloc, cntr+1);
+                        var pBuilder = new BuildPantograph();
+                        pBuilder.CreatePantographPcl(pfilename, swPantograph.PantographConfigurations[cntr], BasePath + "\\Configuration\\", true);
+                    }
                     MessageBox.Show(this, "Configuation settings saved.  Pantograph configuration saved to: " + sc.SaveLocation);
-
                     this.Close();
-
                 }
+            }
+        }
 
+        private bool AddPantoConfig(PantoControl pantoControl, ref List<CustomConfiguration> PantographConfigurations)
+        {
+            if (fullPagePantographUsed) return false;
+
+            var item = new CustomConfiguration();
+            item.BgDarknessFactor = Convert.ToInt32(numDarknessFactor.Value);
+            item.DensityPattern1 = Convert.ToInt32(numDensityPtn1.Value);
+            item.DensityPattern2 = Convert.ToInt32(numDensityPtn2.Value);
+            item.InterferencePatternId = Convert.ToInt32(numIntfPtn.Value);
+            item.BorderString = txtMicroPrint.Text;
+            item.UseDefaultInclusionForPaperSize = chkUseFullPage.Checked;
+            item.TROYmarkOn = chkTM.Checked;
+            AddInclusionRegion(pantoControl, ref item);
+            PantographConfigurations.Add(item);
+            if (item.UseDefaultInclusionForPaperSize)
+            {
+                fullPagePantographUsed = true;
+            }
+            return true;
+        }
+
+        private bool AddInclusionRegion(PantoControl pantoControl, ref CustomConfiguration item)
+        {
+            item.InclusionRegion = new PantographRegionObjectType();
+            if (pantoControl1.numHeight.Value > 0 && pantoControl1.numWidth.Value > 0)
+            {
+                item.InclusionRegion.XAnchor = Convert.ToInt32(pantoControl.numXAnchor.Value);
+                item.InclusionRegion.YAnchor = Convert.ToInt32(pantoControl.numYAnchor.Value);
+                item.InclusionRegion.Height = Convert.ToInt32(pantoControl.numHeight.Value);
+                item.InclusionRegion.Width = Convert.ToInt32(pantoControl.numWidth.Value);
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
         private bool ValidateSettings()
         {
-            if ((!chkUseFullPage.Checked) && ((numHeight.Value == 0) || (numWidth.Value == 0)))
+            if ((!chkUseFullPage.Checked) && ((pantoControl1.numHeight.Value == 0) || (pantoControl1.numWidth.Value == 0)))
             {
                 MessageBox.Show("Pantograph Height and Width cannot be 0.  Please enter a number greater than zero or select the Use Full Page Pantograph option.");
                 return false;

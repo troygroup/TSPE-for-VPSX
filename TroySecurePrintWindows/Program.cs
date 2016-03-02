@@ -113,8 +113,10 @@ namespace TroySecurePrintWindows
             }
 
             //Set the base path, license file path and licensed printer file name
-            //BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+#if DEBUG           
             BasePath = Directory.GetCurrentDirectory();
+#endif
             LicensedPrinterFile = BasePath + @"\LicenseFiles\" + LicensedPrinterFile;
             LicensePath = BasePath + @"\LicenseFiles\";
 
@@ -167,10 +169,6 @@ namespace TroySecurePrintWindows
             if (ErrOnPrintCmdLine)
             {
                 tip.IncludeCodeOnPrintout = true;
-            }
-            if (!tip.TroyCommandsIncluded)
-            {
-                PantographValue = 1;  //Quick way to make this work.		
             }
             EnableTraceLog();
             EnableErrorLog();
@@ -1046,7 +1044,6 @@ namespace TroySecurePrintWindows
                                 try
                                 {
                                     int PgValue = Convert.ToInt32(Encoding.ASCII.GetString(inputBuffer, HoldStartPos + 1, cntr - HoldStartPos - 1));
-                                    PantographValue = PgValue;
                                 }
                                 catch (Exception ex)
                                 {
@@ -1534,7 +1531,16 @@ namespace TroySecurePrintWindows
                                     byte[] enDupBytes = new UTF8Encoding(true).GetBytes(enDup);
                                     outbuf.Write(enDupBytes, 0, enDupBytes.Length);
                                 }
-                                //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                                var dir = new DirectoryInfo(tip.DefaultPantographLocation);
+                                foreach (var file in dir.EnumerateFiles("PantographProfile*Page1.pcl"))
+                                {
+                                    var pgFile = file.FullName;
+                                    if (InsertPantograph(pgFile, ref outbuf))
+                                    {
+                                        if (traceEnabled) WriteToTrace((pgFile + " inserted."));
+                                    }
+                                }
+
                                 for (int cntr = 1; cntr <= 4; cntr++)
                                 {
                                     string pgPath = tip.DefaultPantographLocation;
@@ -1542,17 +1548,10 @@ namespace TroySecurePrintWindows
                                     string pgFile = pgPath + pgFilename;
                                     if (Directory.Exists(pgPath) && File.Exists(pgFile))
                                     {
-                                        if (PantographValue > 0)
+                                        if (InsertPantograph(pgFile, ref outbuf))
                                         {
-                                            if (InsertPantograph(pgFile, ref outbuf))
-                                            {
-                                                if (traceEnabled) WriteToTrace("Pantograph inserted.");
-                                            }
+                                            if (traceEnabled) WriteToTrace((pgFile + " inserted."));
                                         }
-                                    }
-                                    else
-                                    {
-                                        if (traceEnabled) WriteToTrace("Pantograph not inserted. Data file not found. Path: " + tip.DefaultPantographLocation);
                                     }
                                 }
                             

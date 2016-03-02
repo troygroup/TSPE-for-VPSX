@@ -68,8 +68,10 @@ namespace TroyLicensedPrinterManager
         {
             try
             {
-                //BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+#if DEBUG
                 BasePath = Directory.GetCurrentDirectory();
+#endif
                 LicensePath = BasePath + @"\LicenseFiles";
                 LicensedPrinterFile = BasePath + @"\LicenseFiles\LicensedPrinterList.txt";
                 LicensingCore lcore = new Troy.Core.Licensing.LicensingCore();
@@ -419,8 +421,6 @@ namespace TroyLicensedPrinterManager
                                 rowcntr++;
                             }
                         }
-
-
                     }
                     inline = tr.ReadLine();
                 }
@@ -482,8 +482,10 @@ namespace TroyLicensedPrinterManager
 
         private void btnPantograph_Click(object sender, EventArgs e)
         {
-            PantoConfig pc = new PantoConfig();
+            var pc = new PantoConfig();
             pc.BasePath = BasePath;
+            pc.pantoFolder = dgvPrinterList.CurrentRow.Cells[2].Value.ToString();
+
             pc.StartPosition = FormStartPosition.CenterParent;
             pc.ShowDialog();
         }

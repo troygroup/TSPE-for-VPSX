@@ -7,7 +7,7 @@ namespace TroySecurePrintWindows
 {
     public class TroymarkSettings
     {
-        public bool TroymarkEnabled = false;
+        public bool TroymarkEnabled = true;
         public string TroymarkPattern = "Medium";
         public string TroymarkInclusion = "0,0,4800,6400";
         public string TroymarkExclusion = "";

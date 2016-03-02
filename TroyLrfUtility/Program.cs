@@ -30,7 +30,6 @@ namespace TroyLrfUtility
             string tempLoc = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string BasePath = System.IO.Path.GetDirectoryName(tempLoc);
 
-
             string FirstName = "", LastName = "", Company = "", Email = "", Phone = "", Title = "";
 
             string FileName = "TroyLicenseReq.lrf";

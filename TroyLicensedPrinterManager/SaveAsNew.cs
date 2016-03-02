@@ -13,7 +13,7 @@ namespace TroyLicensedPrinterManager
     public partial class SaveAsNew : Form
     {
         public string ReturnName = "";
-        public string BasePath = "";
+        public string CommonPath = "";
 
         public SaveAsNew()
         {
@@ -34,7 +34,7 @@ namespace TroyLicensedPrinterManager
                 return;
             }
 
-            string pathname = BasePath + "\\Configuration\\" + txtNewName.Text;
+            string pathname = CommonPath + @"\Configuration\" + txtNewName.Text;
             if (Directory.Exists(pathname))
             {
                 MessageBox.Show("Configuration name already exists.  Please enter another name.");

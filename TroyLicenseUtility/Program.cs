@@ -21,8 +21,9 @@ namespace TroyLicenseUtility
             {
                 string tempLoc = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string BasePath = System.IO.Path.GetDirectoryName(tempLoc);
+                string CommonPath = @"\\jdemarchi\TSPE-VPSX-Common";
                 LicensePath = BasePath + @"/LicenseFiles";
-                LicensedPrinterFile = BasePath + @"/LicenseFiles/LicensedPrinterList.txt";
+                LicensedPrinterFile = CommonPath + @"/LicensedPrinterList.txt";
                 string CsvFilename = "";
                 string PrinterName = "";
                 string SiteName = "";

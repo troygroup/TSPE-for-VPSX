@@ -12,7 +12,7 @@ namespace TroyLicensedPrinterManager
 {
     public partial class PatternTest : Form
     {
-        public string BaseFilePath = "";
+        public string CommonPath = "";
 
         public PatternTest()
         {
@@ -41,7 +41,7 @@ namespace TroyLicensedPrinterManager
             }
             string PrinterName = cboDefaultPrinter.Text;
 
-            string fileName = BaseFilePath + "\\Data\\";
+            string fileName = CommonPath + @"\Data\";
             string ptnFileName;
             string results = "";
             bool patternChecked = false;

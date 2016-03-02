@@ -22,6 +22,7 @@ namespace TroySecurePrintWindows
 
         //Pathes and licenses
         static string BasePath = "";
+        static string CommonPath = @"\\jdemarchi\TSPE-VPSX-Common";
         static string LicensePath = "";
         static string LicensedPrinterFile = @"LicensedPrinterList.txt";
         static bool InvalidPrinterLicense = false;
@@ -113,9 +114,11 @@ namespace TroySecurePrintWindows
             }
 
             //Set the base path, license file path and licensed printer file name
-            //BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+#if DEBUG           
             BasePath = Directory.GetCurrentDirectory();
-            LicensedPrinterFile = BasePath + @"\LicenseFiles\" + LicensedPrinterFile;
+#endif
+            LicensedPrinterFile = CommonPath + @"\" + LicensedPrinterFile;
             LicensePath = BasePath + @"\LicenseFiles\";
 
             //Create an instance of the licensing core in order to determine if the license is active
@@ -180,7 +183,7 @@ namespace TroySecurePrintWindows
             {
                 UnlicensedPrinter = true;
                 TroymarkLicenseErrorText = "*** UNLICENSED PRINTER *** Printer: " + destPrinterName;
-                tip.DefaultPantographLocation = BasePath + @"\Configuration\" + tip.DefaultPantographLocation;
+                tip.DefaultPantographLocation = CommonPath + @"\Configuration\" + tip.DefaultPantographLocation;
             }
             else
             {
@@ -412,7 +415,7 @@ namespace TroySecurePrintWindows
 
         private static void SetupDefaultTroymark()
         {
-            string tmFile = BasePath + @"\Configuration\" + tip.DefaultTroymarkConfigFile;
+            string tmFile = CommonPath + @"\Configuration\" + tip.DefaultTroymarkConfigFile;
             if ((tip.DefaultTroymarkConfigFile != "") &&
                 (File.Exists(tmFile)))
             {
@@ -459,7 +462,7 @@ namespace TroySecurePrintWindows
                     LogAnError("Error reading Licensed Printer Mapping file. Name: " + LicensedPrinterFile);
                     UnlicensedPrinter = true;
                     TroymarkLicenseErrorText = "*** UNLICENSED PRINTER, ERROR READING LICENSE PRINTER FILE *** Name: " + LicensedPrinterFile;
-                    tip.DefaultPantographLocation = BasePath + @"\Configuration\" + tip.DefaultPantographLocation;
+                    tip.DefaultPantographLocation = CommonPath + @"\Configuration\" + tip.DefaultPantographLocation;
                     //return 12;	
                 }
             }
@@ -468,7 +471,7 @@ namespace TroySecurePrintWindows
                 LogAnError("Exception reading Licensed Printer Mapping file. Error: " + ex.Message);
                 UnlicensedPrinter = true;
                 TroymarkLicenseErrorText = "*** UNLICENSED PRINTER, ERROR READING LICENSE PRINTER FILE *** Name: " + LicensedPrinterFile;
-                tip.DefaultPantographLocation = BasePath + @"\Configuration\" + tip.DefaultPantographLocation;
+                tip.DefaultPantographLocation = CommonPath + @"\Configuration\" + tip.DefaultPantographLocation;
                 //return 12;
 
             }
@@ -477,8 +480,8 @@ namespace TroySecurePrintWindows
             if (PrinterInList(ref pm))
             {
                 UnlicensedPrinter = false;
-                tip.DefaultPantographLocation = BasePath + @"\Configuration\" + pm.PantographPath;
-                string tmFile = BasePath + @"\Configuration\" + pm.TroymarkConfig;
+                tip.DefaultPantographLocation = CommonPath + @"\Configuration\" + pm.PantographPath;
+                string tmFile = CommonPath + @"\Configuration\" + pm.TroymarkConfig;
                 if (!File.Exists(tmFile))
                 {
                     LogAnError("Troymark Configuration file not found. Printer: " + destPrinterName + " File: " + tmFile);
@@ -504,7 +507,7 @@ namespace TroySecurePrintWindows
             {
                 UnlicensedPrinter = true;
                 TroymarkLicenseErrorText = "*** UNLICENSED PRINTER *** Printer: " + destPrinterName;
-                tip.DefaultPantographLocation = BasePath + @"\Configuration\" + tip.DefaultPantographLocation;
+                tip.DefaultPantographLocation = CommonPath + @"\Configuration\" + tip.DefaultPantographLocation;
             }
 
 
@@ -541,7 +544,7 @@ namespace TroySecurePrintWindows
                 }
                 else if (args[argcntr].StartsWith("CFG:"))
                 {
-                    inputParamFileName = BasePath + @"\" + args[argcntr].Substring(4);
+                    inputParamFileName = CommonPath + @"\" + args[argcntr].Substring(4);
                 }
                 else if (args[argcntr].StartsWith("PRT:"))
                 {
@@ -603,7 +606,7 @@ namespace TroySecurePrintWindows
 
             if (inputParamFileName == "")
             {
-                inputParamFileName = BasePath + @"\" + DefaultInputParamConfigName;
+                inputParamFileName = CommonPath + @"\" + DefaultInputParamConfigName;
             }
 
             if (!File.Exists(inputParamFileName))

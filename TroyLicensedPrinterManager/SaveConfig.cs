@@ -13,7 +13,7 @@ namespace TroyLicensedPrinterManager
     {
         public string CurrentConfig = "";
         public string SaveLocation = "";
-        public string BasePath = "";
+        public string CommonPath = "";
 
         public SaveConfig()
         {
@@ -41,7 +41,7 @@ namespace TroyLicensedPrinterManager
         private void btnSaveAsNew_Click(object sender, EventArgs e)
         {
             SaveAsNew san = new SaveAsNew();
-            san.BasePath = BasePath;
+            san.CommonPath = CommonPath;
             san.StartPosition = FormStartPosition.CenterParent; 
             san.ShowDialog();
             if (san.ReturnName == "")

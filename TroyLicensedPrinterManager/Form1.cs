@@ -22,6 +22,7 @@ namespace TroyLicensedPrinterManager
         int MaxPrinterCount = -1;
         int rowcnt = 0;
         string BasePath = "";
+        static string CommonPath = @"\\jdemarchi\TSPE-VPSX-Common";
 
         public frmLicensedPrinter()
         {
@@ -44,7 +45,7 @@ namespace TroyLicensedPrinterManager
                 else if (e.ColumnIndex == 1)
                 {
                     openFileDialog1.DefaultExt = "XML|xml";
-                    openFileDialog1.InitialDirectory = BasePath + @"\Configuration";
+                    openFileDialog1.InitialDirectory = CommonPath + @"\Configuration";
                     if (openFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                     {
                         dgvPrinterList.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = openFileDialog1.SafeFileName;
@@ -68,10 +69,12 @@ namespace TroyLicensedPrinterManager
         {
             try
             {
-                //BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                BasePath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+#if DEBUG
                 BasePath = Directory.GetCurrentDirectory();
+#endif
                 LicensePath = BasePath + @"\LicenseFiles";
-                LicensedPrinterFile = BasePath + @"\LicenseFiles\LicensedPrinterList.txt";
+                LicensedPrinterFile = CommonPath + @"\LicensedPrinterList.txt";
                 LicensingCore lcore = new Troy.Core.Licensing.LicensingCore();
                 LicensingStatus lstatus = lcore.GetLicenseStatus(out MaxPrinterCount, LicensePath);
 
@@ -224,14 +227,14 @@ namespace TroyLicensedPrinterManager
                     MessageBox.Show("TROYmark Configuration can not be blank.  Row: " + realcntr.ToString());
                     return false;
                 }
-                else if (Directory.Exists(BasePath + "\\" + dgvPrinterList.Rows[cntr].Cells[1].Value.ToString()))
+                else if (Directory.Exists(CommonPath + "\\" + dgvPrinterList.Rows[cntr].Cells[1].Value.ToString()))
                 {
-                    MessageBox.Show("Pantograph path not found.  Path: " + BasePath + "\\" + dgvPrinterList.Rows[cntr].Cells[1].Value.ToString());
+                    MessageBox.Show("Pantograph path not found.  Path: " + CommonPath + "\\" + dgvPrinterList.Rows[cntr].Cells[1].Value.ToString());
                     return false;
                 }
-                else if (File.Exists(BasePath + "\\Configuration\\" + dgvPrinterList.Rows[cntr].Cells[2].Value.ToString()))
+                else if (File.Exists(CommonPath + @"\Configuration\" + dgvPrinterList.Rows[cntr].Cells[2].Value.ToString()))
                 {
-                    MessageBox.Show("Troymark configuration file not found.  File: " + BasePath + "\\Configuration\\" + dgvPrinterList.Rows[cntr].Cells[2].Value.ToString());
+                    MessageBox.Show("Troymark configuration file not found.  File: " + CommonPath + @"\Configuration\" + dgvPrinterList.Rows[cntr].Cells[2].Value.ToString());
                     return false;
                 }
                 else if (prtnamelist.Contains(dgvPrinterList.Rows[cntr].Cells[0].Value.ToString()))
@@ -345,7 +348,7 @@ namespace TroyLicensedPrinterManager
             openFileDialog2.Multiselect = false;
             openFileDialog2.Title = "Licensed Printer List (CSV)";
             openFileDialog2.FileName = "";
-            openFileDialog2.InitialDirectory = BasePath;
+            openFileDialog2.InitialDirectory = CommonPath;
             if (openFileDialog2.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
                 TextReader tr = new StreamReader(openFileDialog2.FileName);
@@ -419,8 +422,6 @@ namespace TroyLicensedPrinterManager
                                 rowcntr++;
                             }
                         }
-
-
                     }
                     inline = tr.ReadLine();
                 }
@@ -476,14 +477,15 @@ namespace TroyLicensedPrinterManager
         {
             PatternTest pt = new PatternTest();
             pt.StartPosition = FormStartPosition.CenterParent;
-            pt.BaseFilePath = BasePath;
-            pt.Show();
+            pt.CommonPath = CommonPath; 
         }
 
         private void btnPantograph_Click(object sender, EventArgs e)
         {
-            PantoConfig pc = new PantoConfig();
-            pc.BasePath = BasePath;
+            var pc = new PantoConfig();
+            pc.CommonPath = CommonPath;
+            pc.pantoFolder = dgvPrinterList.CurrentRow.Cells[2].Value.ToString();
+
             pc.StartPosition = FormStartPosition.CenterParent;
             pc.ShowDialog();
         }

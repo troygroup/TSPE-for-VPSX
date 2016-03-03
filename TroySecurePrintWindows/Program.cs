@@ -308,7 +308,7 @@ namespace TroySecurePrintWindows
                             bool result= Int32.TryParse(PjlString.Substring(index + str.Length,index3 - (index+str.Length)), out pagenum);
                             if (result == true)
                             {
-                                string tmdata = PjlString.Substring(index3 + 1, index2 - (index3 + 2));
+                                string tmdata = PjlString.Substring(index3 + 1, index2 - (index3 + 1));
                                 if (TroymarkDataPerPage.ContainsKey(pagenum))
                                 {
                                     TroymarkDataPerPage[pagenum] += tmdata;
